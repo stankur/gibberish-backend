@@ -6,20 +6,30 @@
 	"scripts": {
 		"build": "npx tsc",
 		"start": "node dist/index.js",
-		"dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+		"dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
+		"test": "PORT=6666 mocha dist/**/*.test.js --exit"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@types/pg": "^8.6.5",
 		"dotenv": "^16.0.1",
-		"express": "^4.18.1"
+		"express": "^4.18.1",
+		"pg": "^8.7.3",
+		"pg-pool": "^3.5.1"
 	},
 	"devDependencies": {
+		"@types/chai": "^4.3.1",
 		"@types/express": "^4.17.13",
+		"@types/mocha": "^9.1.1",
 		"@types/node": "^18.6.3",
+		"@types/supertest": "^2.0.12",
+		"chai": "^4.3.6",
 		"concurrently": "^7.3.0",
+		"mocha": "^10.0.0",
 		"nodemon": "^2.0.19",
+		"supertest": "^6.2.4",
 		"ts-node": "^10.9.1",
 		"typescript": "^4.7.4"
 	}
