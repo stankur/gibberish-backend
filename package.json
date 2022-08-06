@@ -7,18 +7,25 @@
 		"build": "npx tsc",
 		"start": "node dist/index.js",
 		"dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
-		"test": "PORT=6666 mocha dist/**/*.test.js --exit"
+		"test": "PORT=6666 mocha --timeout 10000 dist/**/*.test.js --exit"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@types/async": "^3.2.15",
 		"@types/http-errors": "^1.8.2",
+		"@types/passport": "^1.0.9",
+		"@types/passport-jwt": "^3.0.6",
 		"@types/pg": "^8.6.5",
 		"@types/pg-pool": "^2.0.3",
+		"async": "^3.2.4",
+		"dayjs": "^1.11.4",
 		"dotenv": "^16.0.1",
 		"express": "^4.18.1",
 		"http-errors": "^2.0.0",
+		"passport": "^0.6.0",
+		"passport-jwt": "^4.0.0",
 		"pg": "^8.7.3",
 		"pg-pool": "^3.5.1"
 	},

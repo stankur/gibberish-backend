@@ -5,13 +5,13 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     bio VARCHAR(200),
     instagram VARCHAR(30),
-    date_joined timestamptz NOT NULL default now(),
+    date_joined timestamptz default now(),
     PRIMARY KEY (username)
 );
 
 CREATE TABLE IF NOT EXISTS posts (
     content VARCHAR(300) NOT NULL,
-    date_posted timestamptz NOT NULL default now(),
+    date_posted timestamptz default now(),
     user_username VARCHAR(50) NOT NULL,
     game TEXT NOT NULL CHECK (game in ('Why/Because', 'Quote/Person', 'Who/Description')),
     owner_post_date_posted timestamptz,

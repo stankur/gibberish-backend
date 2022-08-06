@@ -1,7 +1,9 @@
 import express, { ErrorRequestHandler, Express } from "express";
 import createError  from "http-errors"
 import dotenv from "dotenv";
-import poolClient from "./poolClient"
+
+import apiRouter from "./routes/api"
+
 
 dotenv.config();
 
@@ -10,43 +12,7 @@ const port = process.env.PORT || 80;
 
 app.use(express.json());
 
-app.get("/", (req, res) => {
-	res.json({ hey: "wuddup" });
-});
-
-app.post("/users", (req, res, next) => {
-    try {
-		const { username, password } = req.body;
-
-		if (!username || !password) {
-			return next(new Error("missing required fields!"));
-		}
-
-		if (
-			[username, password].some(
-				(value) =>
-					typeof value !== "string" && typeof value !== "number"
-			)
-		) {
-			return next(
-				new Error(
-					"either username or password that has been covered up is not text or number!"
-				)
-			);
-		}
-
-		poolClient
-			.query("INSERT INTO users (username, password) VALUES ($1, $2)", [
-				username,
-				password,
-			])
-			.then(() => {
-				res.json({ status: "success" });
-			});
-	} catch (err) {
-		return next(err);
-	}
-})
+app.use("/api", apiRouter);
 
 app.use(function (req, res, next) {
 	next(createError(404));
