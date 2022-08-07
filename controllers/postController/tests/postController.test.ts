@@ -5,7 +5,8 @@ import poolClient from "../../../poolClient";
 import request from "supertest";
 import { expect } from "chai";
 
-import async, { waterfall } from "async";
+import testHelper from "../../testHelper";
+
 import dayjs from "dayjs";
 
 import mockData, {
@@ -16,14 +17,6 @@ import mockData, {
 } from "../../mockData";
 
 import { getPointsOfPost } from "../postController";
-
-type DatedMainPost = MainPost & {
-	date_posted?: any;
-};
-
-type DatedDependentPost = DependentPost & {
-	date_posted?: any;
-};
 
 describe("sample test", () => {
 	const pool = new Pool({
@@ -39,33 +32,50 @@ describe("sample test", () => {
 	};
 
 	let users: User[] = [
-		mockData.user0,
-		mockData.user1,
-		mockData.user2,
-		mockData.user3,
-		mockData.user4,
+		mockData.user0 as User,
+		mockData.user1 as User,
+		mockData.user2 as User,
+		mockData.user3 as User,
+		mockData.user4 as User,
 	];
 
-	let mainPosts: DatedMainPost[] = [mockData.postWhy0];
+	let mainPosts: MainPost[] = [
+		mockData.postWhy0 as MainPost,
+		mockData.postWhy1 as MainPost,
+		mockData.postWhy2 as MainPost,
+		mockData.postWhy3 as MainPost,
+	];
 
-	let dependentPosts: DatedDependentPost[] = [
-		mockData.postBecause00,
-		mockData.postBecause01,
-		mockData.postBecause02,
+	let dependentPosts: DependentPost[] = [
+		mockData.postBecause00 as DependentPost,
+		mockData.postBecause01 as DependentPost,
+		mockData.postBecause02 as DependentPost,
+		mockData.postBecause10 as DependentPost,
+		mockData.postBecause11 as DependentPost,
+		mockData.postBecause12 as DependentPost,
+		mockData.postBecause13 as DependentPost,
+		mockData.postBecause14 as DependentPost,
+		mockData.postBecause20 as DependentPost,
+		mockData.postBecause21 as DependentPost,
+		mockData.postBecause22 as DependentPost,
+		mockData.postBecause30 as DependentPost,
+		mockData.postBecause31 as DependentPost,
+		mockData.postBecause32 as DependentPost,
+		mockData.postBecause33 as DependentPost,
 	];
 
 	let interactions: Interaction[] = [
-		mockData.interaction00,
-		mockData.interaction01,
-		mockData.interaction02,
-		mockData.interaction03,
-		mockData.interaction04,
+		mockData.interaction00 as Interaction,
+		mockData.interaction01 as Interaction,
+		mockData.interaction02 as Interaction,
+		mockData.interaction03 as Interaction,
+		mockData.interaction04 as Interaction,
 
-		mockData.interaction000,
-		mockData.interaction001,
-		mockData.interaction002,
-		mockData.interaction003,
-		mockData.interaction004,
+		mockData.interaction000 as Interaction,
+		mockData.interaction001 as Interaction,
+		mockData.interaction002 as Interaction,
+		mockData.interaction003 as Interaction,
+		mockData.interaction004 as Interaction,
 	];
 
 	const app: Express = express();
@@ -86,108 +96,13 @@ describe("sample test", () => {
             `
 		);
 
-		users.forEach(async (user) => {
-			await poolClient.query(`
-            INSERT INTO 
-                users (username, password)
-            VALUES
-                ('${user.username}','${user.password}')
-            `);
-		});
-
-		let insertMainPosts = async function () {
-			for (let post of mainPosts) {
-				const { rows } = await poolClient.query(`
-                            WITH date_posted_rows AS (
-                                INSERT INTO 
-                                    posts (content, user_username, game)
-                                VALUES 
-                                    ('${post.content}','${post.user.username}','${post.game}')
-                                RETURNING 
-                                    date_posted
-                            )
-
-                            SELECT * FROM date_posted_rows;
-                        `);
-
-				console.log(rows);
-
-				let date_posted = dayjs(rows[0]["date_posted"]).toISOString();
-
-				Object.assign(post, { date_posted });
-			}
-
-			console.log("I completed inserting main posts");
-			await insertDependentPosts();
-		};
-
-		let insertDependentPosts = async function () {
-			for (let post of dependentPosts) {
-				const { rows } = await poolClient.query(`
-                            WITH date_posted_rows AS (
-                                INSERT INTO
-                                    posts (content, user_username, game, owner_post_date_posted, owner_post_user_username)
-                                VALUES 
-                                    ('${post.content}',
-                                    '${post.user.username}',
-                                    '${post.game}',
-                                    '${
-										mainPosts.find((mainPost) => {
-											return (
-												post.ownerPost.content ===
-												mainPost.content
-											);
-										})?.date_posted
-									}',
-                                    '${post.ownerPost.user.username}'
-                                    )
-                                RETURNING 
-                                    date_posted
-                            )
-
-                            SELECT * FROM date_posted_rows;
-                        `);
-
-				let date_posted = dayjs(rows[0]["date_posted"]).toISOString();
-				console.log(rows.length);
-				console.log("type of date posted: " + typeof date_posted);
-				console.log(date_posted);
-
-				post.date_posted = date_posted;
-			}
-
-			console.log("I completed inserting dependent posts");
-			await insertInteractions();
-		};
-
-		let insertInteractions = async function () {
-			for (let interaction of interactions) {
-				await poolClient.query(`
-                            INSERT INTO
-                                interactions (user_username,post_date_posted,post_user_username,interaction_type)
-                            VALUES
-                                ('${interaction.user.username}',
-                                '${
-									[...mainPosts, ...dependentPosts].find(
-										(post) => {
-											console.log(post.date_posted);
-											return (
-												post.content ===
-												interaction.post.content
-											);
-										}
-									)?.date_posted
-								}',
-                                '${interaction.post.user.username}',
-                                '${interaction.type}');
-                        `);
-                console.log("at least 1 tho :|")
-			}
-
-			console.log("I have completed inserting interactions");
-		};
-
-		await insertMainPosts();
+		await testHelper.insertMockDataToDatabase(
+			users,
+			mainPosts,
+			dependentPosts,
+			interactions,
+			poolClient
+		);
 	});
 
 	afterEach("Drop temporary tables", async function () {

@@ -13,13 +13,11 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@types/async": "^3.2.15",
 		"@types/http-errors": "^1.8.2",
 		"@types/passport": "^1.0.9",
 		"@types/passport-jwt": "^3.0.6",
 		"@types/pg": "^8.6.5",
 		"@types/pg-pool": "^2.0.3",
-		"async": "^3.2.4",
 		"dayjs": "^1.11.4",
 		"dotenv": "^16.0.1",
 		"express": "^4.18.1",

@@ -1,5 +1,8 @@
 import { RequestHandler } from "express";
+import { applyQueries, getDateRange } from "../helper";
 import poolClient from "../../poolClient";
+
+import dayjs from "dayjs";
 
 const createUpvotesTempTableQuery = `
     SELECT 
@@ -73,4 +76,43 @@ const getPointsOfPost: RequestHandler = async (req, res, next) => {
     return res.json(result);
 }
 
-export { getPointsOfPost }
+const createTotalRepliesTempTable = `
+    SELECT 
+        COUNT (*) AS replies,
+        owner_post_date_posted,
+        owner_post_user_username
+    INTO TEMP TABLE
+        post_replies
+    FROM
+        posts
+    GROUP BY
+        owner_post_date_posted,
+        owner_post_user_username
+`;
+
+const getMainPosts: RequestHandler = async (req, res, next) => {
+	let urlQuery = req.query;
+
+	const query: string = `
+    SELECT
+        *
+    FROM
+        posts
+    WHERE
+        owner_post_date_posted IS NULL AND
+        owner_post_user_username IS NULL
+        ${
+			getDateRange(urlQuery, "posts", "date_posted") === ""
+				? ""
+				: ` AND ${getDateRange(urlQuery, "posts", "date_posted")}`
+		}
+    ${applyQueries(urlQuery, "posts", "date_posted")}
+    `;
+
+    const result = await poolClient.query(query);
+
+	console.log(result);
+	return res.json(result);
+};
+
+export { getPointsOfPost, getMainPosts };
