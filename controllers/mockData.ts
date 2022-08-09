@@ -47,15 +47,8 @@ function createDependentPost(
 	user: User,
 	game: "Why/Because" | "Quote/Person" | "Who/Description",
 	ownerPost: MainPost,
-	date_posted?: string
 ): DependentPost {
-	let base = { content, user, game, ownerPost };
-
-	if (date_posted !== undefined) {
-		Object.assign(base, { date_posted });
-	}
-
-	return base;
+	return { content, user, game, ownerPost };
 }
 
 function createMultipleDependentPosts(
@@ -65,7 +58,6 @@ function createMultipleDependentPosts(
 		user: User,
 		game: "Why/Because" | "Quote/Person" | "Who/Description",
 		ownerPost: MainPost,
-		date_posted?: string
 	][]
 ): Record<string, DependentPost> {
 	let base: Record<string, DependentPost> = {};
@@ -76,7 +68,6 @@ function createMultipleDependentPosts(
 		user,
 		game,
 		ownerPost,
-		date_posted,
 	] of dependentPosts) {
 		Object.assign(base, {
 			[keyName]: createDependentPost(
@@ -84,7 +75,6 @@ function createMultipleDependentPosts(
 				user,
 				game,
 				ownerPost,
-				date_posted
 			),
 		});
 	}
@@ -95,14 +85,8 @@ function createMainPost(
 	content: string,
 	user: User,
 	game: "Why/Because" | "Quote/Person" | "Who/Description",
-	date_posted?: string
 ): MainPost {
 	let base = { content, user, game };
-
-	if (date_posted !== undefined) {
-		Object.assign(base, { date_posted });
-	}
-
 	return base;
 }
 
@@ -112,13 +96,12 @@ function createMultipleMainPosts(
 		content: string,
 		user: User,
 		game: "Why/Because" | "Quote/Person" | "Who/Description",
-		date_posted?: string
 	][]
 ): Record<string, MainPost> {
 	let base: Record<string, MainPost> = {};
-	for (const [keyName, content, user, game, date_posted] of mainPosts) {
+	for (const [keyName, content, user, game] of mainPosts) {
 		Object.assign(base, {
-			[keyName]: createMainPost(content, user, game, date_posted),
+			[keyName]: createMainPost(content, user, game),
 		});
 	}
 

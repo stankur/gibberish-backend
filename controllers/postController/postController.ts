@@ -6,8 +6,7 @@ import { AcceptableQuery } from "../types";
 const createUpvotesTempTableQuery = `
     SELECT 
         COUNT(*) AS upvotes,
-        post_date_posted, 
-        post_user_username
+        post_id
     INTO TEMP TABLE 
         post_upvotes
     FROM 
@@ -15,14 +14,13 @@ const createUpvotesTempTableQuery = `
     WHERE
         interactions.interaction_type = 'upvote'
     GROUP BY
-        post_date_posted, post_user_username;
+        post_id;
 `;
 
 const createDownvotesTempTableQuery = `
     SELECT 
         COUNT(*) AS downvotes,
-        post_date_posted, 
-        post_user_username
+        post_id
     INTO TEMP TABLE 
         post_downvotes
     FROM 
@@ -30,7 +28,7 @@ const createDownvotesTempTableQuery = `
     WHERE
         interactions.interaction_type = 'downvote'
     GROUP BY
-        post_date_posted, post_user_username;
+        post_id;
 `;
 
 const createPointsTempTableQuery = `
@@ -51,15 +49,14 @@ const createPointsTempTableQuery = `
             ELSE post_downvotes.downvotes
             END
         )) AS points,
-        post_date_posted, 
-        post_user_username
+        post_id
     INTO TEMP TABLE
         post_points
     FROM 
         post_upvotes
     FULL OUTER JOIN 
         post_downvotes
-    USING (post_date_posted, post_user_username);
+    USING (post_id);
 `;
 
 const getPointsOfPost: RequestHandler = async (req, res, next) => {
@@ -78,19 +75,15 @@ const getPointsOfPost: RequestHandler = async (req, res, next) => {
 const createTotalRepliesTempTable = `
     SELECT 
         COUNT (*) AS total_replies,
-        owner_post_date_posted AS date_posted,
-        owner_post_user_username AS user_username
+        owner_post_id AS post_id
     INTO TEMP TABLE
         post_replies
     FROM
         posts
     WHERE 
-        (owner_post_date_posted IS NOT NULL)
-        AND 
-        (owner_post_user_username IS NOT NULL)
+        (owner_post_id IS NOT NULL)
     GROUP BY
-        owner_post_date_posted,
-        owner_post_user_username;
+        owner_post_id;
 `;
 
 const createMainPostsTempTable = (urlQuery: AcceptableQuery) => `
@@ -101,8 +94,7 @@ const createMainPostsTempTable = (urlQuery: AcceptableQuery) => `
     FROM
         posts
     WHERE
-        owner_post_date_posted IS NULL AND
-        owner_post_user_username IS NULL
+        owner_post_id IS NULL
         ${
 			getDateRange(urlQuery, "posts", "date_posted") === ""
 				? ""
@@ -119,22 +111,16 @@ const getMainPosts: RequestHandler = async (req, res, next) => {
 
     ${createMainPostsTempTable(urlQuery)}
 
-    SELECT * FROM post_replies;
-    SELECT * FROM main_posts;
 
     SELECT 
-        main_posts.date_posted AS mp_date_posted,
-        main_posts.user_username AS mp_user_username,
-        post_replies.date_posted AS pr_date_posted,
-        post_replies.user_username AS pr_user_username,
+        post_id,
         total_replies
     FROM
         main_posts
-    FULL OUTER JOIN
+    LEFT JOIN
         post_replies
     ON
-        (main_posts.date_posted = post_replies.date_posted) AND
-        (main_posts.user_username = post_replies.user_username);
+        main_posts.id = post_replies.post_id;
 
     `;
 

@@ -1,5 +1,4 @@
 import { DependentPost, Interaction, MainPost, User } from "./types";
-import dayjs from "dayjs";
 import realPoolClient from "../poolClient";
 
 async function insertMockDataToDatabase(
@@ -9,109 +8,89 @@ async function insertMockDataToDatabase(
 	interactions: Interaction[],
 	poolClient: typeof realPoolClient
 ) {
-	users.forEach(async (user) => {
-		await poolClient.query(`
-            INSERT INTO 
-                users (username, password)
-            VALUES
-                ('${user.username}','${user.password}')
+	for (let user of users) {
+		const { rows } = await poolClient.query(`
+            WITH id_posted_rows AS (
+                INSERT INTO 
+                    users (username, password)
+                VALUES
+                    ('${user.username}','${user.password}')
+                RETURNING 
+                    id
+            )
+
+            SELECT * FROM id_posted_rows;
             `);
-	});
 
-	let insertMainPosts = async function () {
-		for (let post of mainPosts) {
-			const { rows } = await poolClient.query(`
-                            WITH date_posted_rows AS (
-                                INSERT INTO 
-                                    posts (content, user_username, game)
-                                VALUES 
-                                    ('${post.content}','${post.user.username}','${post.game}')
-                                RETURNING 
-                                    date_posted
-                            )
+		let id = rows[0]["id"];
+		user.id = id;
+	}
 
-                            SELECT * FROM date_posted_rows;
-                        `);
+	for (let post of mainPosts) {
+		const { rows } = await poolClient.query(`
+            WITH id_posted_rows AS (
+                INSERT INTO 
+                    posts (content, user_id, game)
+                VALUES 
+                    ('${post.content}','${post.user.id}','${post.game}')
+                RETURNING 
+                    id
+            )
 
-			console.log(rows);
+            SELECT * FROM id_posted_rows;
+        `);
 
-			let date_posted = dayjs(rows[0]["date_posted"]).toISOString();
+		console.log(rows);
+		let id = rows[0]["id"];
 
-			post.date_posted = date_posted;
-		}
+		post.id = id;
+	}
 
-		console.log(
-			"here is an example: user -> " +
-				mainPosts[0].user.username +
-				" content -> " +
-				mainPosts[0].content +
-				" date -> " +
-				mainPosts[0].date_posted
-		);
+	for (let post of dependentPosts) {
+		const { rows } = await poolClient.query(`
+            WITH id_posted_rows AS (
+                INSERT INTO
+                    posts (content, user_id, game, owner_post_id)
+                VALUES 
+                    ('${post.content}',
+                    '${post.user.id}',
+                    '${post.game}',
+                    '${post.ownerPost.id}')
+                RETURNING 
+                    id
+            )
 
-		console.log(
-			"here is the same thing but he original -> user -> " +
-				dependentPosts[0].ownerPost.user.username +
-				" content -> " +
-				dependentPosts[0].ownerPost.content +
-				" date -> " +
-				dependentPosts[0].ownerPost.date_posted
-		);
+            SELECT * FROM id_posted_rows;
+        `);
 
-		console.log("I completed inserting main posts");
-		await insertDependentPosts();
-	};
+		let id = rows[0]["id"];
 
-	let insertDependentPosts = async function () {
-		for (let post of dependentPosts) {
-			const { rows } = await poolClient.query(`
-                            WITH date_posted_rows AS (
-                                INSERT INTO
-                                    posts (content, user_username, game, owner_post_date_posted, owner_post_user_username)
-                                VALUES 
-                                    ('${post.content}',
-                                    '${post.user.username}',
-                                    '${post.game}',
-                                    '${post.ownerPost.date_posted}',
-                                    '${post.ownerPost.user.username}'
-                                    )
-                                RETURNING 
-                                    date_posted
-                            )
+		post.id = id;
+	}
 
-                            SELECT * FROM date_posted_rows;
-                        `);
+	for (let interaction of interactions) {
+		const { rows } = await poolClient.query(`
+            WITH id_posted_rows AS (
+                INSERT INTO
+                    interactions (user_id,post_id,interaction_type)
+                VALUES
+                    ('${interaction.user.id}',
+                    '${interaction.post.id}',
+                    '${interaction.type}')
+                RETURNING
+                    id
+            )
 
-			let date_posted = dayjs(rows[0]["date_posted"]).toISOString();
-			console.log(rows.length);
-			console.log("type of date posted: " + typeof date_posted);
-			console.log(date_posted);
+            SELECT * FROM id_posted_rows;
+        `);
 
-			post.date_posted = date_posted;
-		}
+		let id = rows[0]["id"];
+		interaction.id = id;
 
-		console.log("I completed inserting dependent posts");
-		await insertInteractions();
-	};
+		console.log("at least 1 tho :|");
+	}
 
-	let insertInteractions = async function () {
-		for (let interaction of interactions) {
-			await poolClient.query(`
-                            INSERT INTO
-                                interactions (user_username,post_date_posted,post_user_username,interaction_type)
-                            VALUES
-                                ('${interaction.user.username}',
-                                '${interaction.post.date_posted}',
-                                '${interaction.post.user.username}',
-                                '${interaction.type}');
-                        `);
-			console.log("at least 1 tho :|");
-		}
-
-		console.log("I have completed inserting interactions");
-	};
-
-	await insertMainPosts();
+	console.log("I have completed inserting interactions");
 }
 
 export default { insertMockDataToDatabase };

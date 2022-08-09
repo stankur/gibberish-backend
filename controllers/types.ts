@@ -8,6 +8,7 @@ interface AcceptableQuery {
 }
 
 type User = {
+    id?: string;
 	username: string;
 	password: string;
 	bio?: string;
@@ -15,22 +16,22 @@ type User = {
 };
 
 type MainPost = {
+	id?: string;
 	content: string;
 	user: User;
 	game: "Why/Because" | "Quote/Person" | "Who/Description";
-	date_posted?: string;
 };
 
 type DependentPost = {
+	id?: string;
 	content: string;
 	user: User;
 	game: "Why/Because" | "Quote/Person" | "Who/Description";
 	ownerPost: MainPost;
-	date_posted?: string;
 };
 
-
 type Interaction = {
+	id?: string;
 	user: User;
 	post: DependentPost | MainPost;
 	type: "upvote" | "downvote";
