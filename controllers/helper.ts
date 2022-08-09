@@ -1,7 +1,7 @@
 import { AcceptableQuery } from "./types";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 dotenv.config();
 
 import utc from "dayjs/plugin/utc";

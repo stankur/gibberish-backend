@@ -1,8 +1,7 @@
 import { RequestHandler } from "express";
 import { applyQueries, getDateRange } from "../helper";
 import poolClient from "../../poolClient";
-
-import dayjs from "dayjs";
+import { AcceptableQuery } from "../types";
 
 const createUpvotesTempTableQuery = `
     SELECT 
@@ -78,24 +77,27 @@ const getPointsOfPost: RequestHandler = async (req, res, next) => {
 
 const createTotalRepliesTempTable = `
     SELECT 
-        COUNT (*) AS replies,
-        owner_post_date_posted,
-        owner_post_user_username
+        COUNT (*) AS total_replies,
+        owner_post_date_posted AS date_posted,
+        owner_post_user_username AS user_username
     INTO TEMP TABLE
         post_replies
     FROM
         posts
+    WHERE 
+        (owner_post_date_posted IS NOT NULL)
+        AND 
+        (owner_post_user_username IS NOT NULL)
     GROUP BY
         owner_post_date_posted,
-        owner_post_user_username
+        owner_post_user_username;
 `;
 
-const getMainPosts: RequestHandler = async (req, res, next) => {
-	let urlQuery = req.query;
-
-	const query: string = `
+const createMainPostsTempTable = (urlQuery: AcceptableQuery) => `
     SELECT
         *
+    INTO TEMP TABLE
+        main_posts
     FROM
         posts
     WHERE
@@ -106,13 +108,40 @@ const getMainPosts: RequestHandler = async (req, res, next) => {
 				? ""
 				: ` AND ${getDateRange(urlQuery, "posts", "date_posted")}`
 		}
-    ${applyQueries(urlQuery, "posts", "date_posted")}
+    ${applyQueries(urlQuery, "posts", "date_posted")};
+`;
+
+const getMainPosts: RequestHandler = async (req, res, next) => {
+	let urlQuery = req.query;
+
+	const query: string = `
+    ${createTotalRepliesTempTable}
+
+    ${createMainPostsTempTable(urlQuery)}
+
+    SELECT * FROM post_replies;
+    SELECT * FROM main_posts;
+
+    SELECT 
+        main_posts.date_posted AS mp_date_posted,
+        main_posts.user_username AS mp_user_username,
+        post_replies.date_posted AS pr_date_posted,
+        post_replies.user_username AS pr_user_username,
+        total_replies
+    FROM
+        main_posts
+    FULL OUTER JOIN
+        post_replies
+    ON
+        (main_posts.date_posted = post_replies.date_posted) AND
+        (main_posts.user_username = post_replies.user_username);
+
     `;
 
-    const result = await poolClient.query(query);
+	let results = await poolClient.query(query);
 
-	console.log(result);
-	return res.json(result);
+	console.log(results);
+	return res.json(results);
 };
 
 export { getPointsOfPost, getMainPosts };

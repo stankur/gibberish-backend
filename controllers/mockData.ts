@@ -1,9 +1,4 @@
-type User = {
-	username: string;
-	password: string;
-	bio?: string;
-	instagram?: string;
-};
+import { DependentPost, Interaction, MainPost, User } from "./types";
 
 function createUser(
 	username: string,
@@ -46,14 +41,6 @@ function createMultipleUsers(
 
 	return base;
 }
-
-type DependentPost = {
-	content: string;
-	user: User;
-	game: "Why/Because" | "Quote/Person" | "Who/Description";
-	ownerPost: MainPost;
-	date_posted?: string;
-};
 
 function createDependentPost(
 	content: string,
@@ -104,13 +91,6 @@ function createMultipleDependentPosts(
 	return base;
 }
 
-type MainPost = {
-	content: string;
-	user: User;
-	game: "Why/Because" | "Quote/Person" | "Who/Description";
-	date_posted?: string;
-};
-
 function createMainPost(
 	content: string,
 	user: User,
@@ -144,12 +124,6 @@ function createMultipleMainPosts(
 
 	return base;
 }
-
-type Interaction = {
-	user: User;
-	post: DependentPost | MainPost;
-	type: "upvote" | "downvote";
-};
 
 function createInteraction(
 	user: User,
@@ -195,6 +169,11 @@ const mainPosts = createMultipleMainPosts([
 	["postWhy3", "why question 3", users.user4, "Why/Because"],
 ]);
 
+// dependent posts
+//      post why 0 (3 replies)
+//      post why 1 (5 replies)
+//      post why 2 (3 replies)
+//      post why 3 (4 replies)
 const dependentPosts = createMultipleDependentPosts([
 	[
 		"postBecause00",
@@ -305,7 +284,27 @@ const dependentPosts = createMultipleDependentPosts([
 
 // interactions
 //      post why 0 interactions (4 upvotes, 1 downvote)
-//      post because 00 interactions (2 upvotes, 3 downvotes)
+//          post because 00 interactions (2 upvotes, 3 downvotes)
+//          post because 01 interactions (3 upvotes, 1 downvote)
+//          post because 02 interactions (2 upvotes, 2 downvotes)
+//
+//      post why 1 interactions (2 upvotes, 3 downvotes)
+//          post because 10 interactions (1 upvote)
+//          post because 11 interactions (2 upvotes)
+//          post because 12 interactions (3 upvotes)
+//          post because 13 interactions (1 downvote)
+//          post because 14 interactions (3 downvotes)
+//
+//      post why 2 interactions (5 upvotes)
+//          post because 20 interactions (1 upvote, 4 downvotes)
+//          post because 21 interactions (2 upvotes, 3 downvotes)
+//          post because 22 interactions (4 upvotes, 1 downvote)
+//
+//      post why 3 interactions (2 upvotes)
+//          post because 30 interactions (3 upvotes, 2 downvotes)
+//          post because 31 interactions (5 upvotes)
+//          post because 32 interactions (1 upvote, 3 downvotes)
+//          post because 33 interactions (1 upvote, 2 downvotes)
 
 const interactions = createMultipleInteractions([
 	["interaction00", users.user0, mainPosts.postWhy0, "upvote"],
@@ -313,18 +312,96 @@ const interactions = createMultipleInteractions([
 	["interaction02", users.user2, mainPosts.postWhy0, "upvote"],
 	["interaction03", users.user3, mainPosts.postWhy0, "upvote"],
 	["interaction04", users.user4, mainPosts.postWhy0, "upvote"],
+
 	["interaction000", users.user0, dependentPosts.postBecause00, "upvote"],
 	["interaction001", users.user1, dependentPosts.postBecause00, "upvote"],
 	["interaction002", users.user2, dependentPosts.postBecause00, "downvote"],
 	["interaction003", users.user3, dependentPosts.postBecause00, "downvote"],
 	["interaction004", users.user4, dependentPosts.postBecause00, "downvote"],
-]);
 
-export { User, MainPost, DependentPost, Interaction };
+	["interaction010", users.user0, dependentPosts.postBecause01, "upvote"],
+	["interaction011", users.user1, dependentPosts.postBecause01, "upvote"],
+	["interaction012", users.user3, dependentPosts.postBecause01, "upvote"],
+	["interaction013", users.user4, dependentPosts.postBecause01, "downvote"],
+
+	["interaction020", users.user1, dependentPosts.postBecause02, "upvote"],
+	["interaction021", users.user2, dependentPosts.postBecause02, "downvote"],
+	["interaction022", users.user3, dependentPosts.postBecause02, "downvote"],
+	["interaction023", users.user4, dependentPosts.postBecause02, "upvote"],
+
+	["interaction10", users.user0, mainPosts.postWhy1, "upvote"],
+	["interaction11", users.user1, mainPosts.postWhy1, "upvote"],
+	["interaction12", users.user2, mainPosts.postWhy1, "downvote"],
+	["interaction13", users.user3, mainPosts.postWhy1, "downvote"],
+	["interaction14", users.user4, mainPosts.postWhy1, "downvote"],
+
+	["interaction100", users.user0, dependentPosts.postBecause10, "upvote"],
+
+	["interaction110", users.user0, dependentPosts.postBecause11, "upvote"],
+	["interaction111", users.user1, dependentPosts.postBecause11, "upvote"],
+
+	["interaction120", users.user1, dependentPosts.postBecause12, "upvote"],
+	["interaction121", users.user3, dependentPosts.postBecause12, "upvote"],
+	["interaction122", users.user4, dependentPosts.postBecause12, "upvote"],
+
+	["interaction130", users.user2, dependentPosts.postBecause13, "downvote"],
+
+	["interaction140", users.user1, dependentPosts.postBecause14, "downvote"],
+	["interaction141", users.user2, dependentPosts.postBecause14, "downvote"],
+	["interaction142", users.user3, dependentPosts.postBecause14, "downvote"],
+
+	["interaction20", users.user0, mainPosts.postWhy2, "upvote"],
+	["interaction21", users.user1, mainPosts.postWhy2, "upvote"],
+	["interaction22", users.user2, mainPosts.postWhy2, "upvote"],
+	["interaction23", users.user3, mainPosts.postWhy2, "upvote"],
+	["interaction24", users.user4, mainPosts.postWhy2, "upvote"],
+
+	["interaction200", users.user0, dependentPosts.postBecause20, "downvote"],
+	["interaction201", users.user1, dependentPosts.postBecause20, "downvote"],
+	["interaction202", users.user2, dependentPosts.postBecause20, "downvote"],
+	["interaction203", users.user3, dependentPosts.postBecause20, "upvote"],
+	["interaction204", users.user4, dependentPosts.postBecause20, "downvote"],
+
+	["interaction210", users.user0, dependentPosts.postBecause21, "downvote"],
+	["interaction211", users.user1, dependentPosts.postBecause21, "upvote"],
+	["interaction212", users.user2, dependentPosts.postBecause21, "downvote"],
+	["interaction213", users.user3, dependentPosts.postBecause21, "upvote"],
+	["interaction214", users.user4, dependentPosts.postBecause21, "downvote"],
+
+	["interaction220", users.user0, dependentPosts.postBecause22, "downvote"],
+	["interaction221", users.user1, dependentPosts.postBecause22, "upvote"],
+	["interaction222", users.user2, dependentPosts.postBecause22, "upvote"],
+	["interaction223", users.user3, dependentPosts.postBecause22, "upvote"],
+	["interaction224", users.user4, dependentPosts.postBecause22, "upvote"],
+
+	["interaction30", users.user0, mainPosts.postWhy3, "upvote"],
+	["interaction31", users.user1, mainPosts.postWhy3, "upvote"],
+
+	["interaction300", users.user0, dependentPosts.postBecause30, "upvote"],
+	["interaction301", users.user1, dependentPosts.postBecause30, "upvote"],
+	["interaction302", users.user2, dependentPosts.postBecause30, "upvote"],
+	["interaction303", users.user3, dependentPosts.postBecause30, "downvote"],
+	["interaction304", users.user4, dependentPosts.postBecause30, "downvote"],
+
+	["interaction310", users.user0, dependentPosts.postBecause31, "upvote"],
+	["interaction311", users.user1, dependentPosts.postBecause31, "upvote"],
+	["interaction312", users.user2, dependentPosts.postBecause31, "upvote"],
+	["interaction313", users.user3, dependentPosts.postBecause31, "upvote"],
+	["interaction314", users.user4, dependentPosts.postBecause31, "upvote"],
+
+	["interaction320", users.user0, dependentPosts.postBecause32, "upvote"],
+	["interaction321", users.user2, dependentPosts.postBecause32, "downvote"],
+	["interaction322", users.user3, dependentPosts.postBecause32, "downvote"],
+	["interaction323", users.user4, dependentPosts.postBecause32, "downvote"],
+
+	["interaction330", users.user0, dependentPosts.postBecause33, "upvote"],
+	["interaction331", users.user2, dependentPosts.postBecause33, "downvote"],
+	["interaction332", users.user4, dependentPosts.postBecause33, "downvote"],
+]);
 
 export default {
 	...users,
 	...mainPosts,
 	...dependentPosts,
-    ...interactions
+	...interactions,
 } as Record<string, User | MainPost | DependentPost | Interaction>;

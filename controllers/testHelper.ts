@@ -1,4 +1,4 @@
-import { DependentPost, Interaction, MainPost, User } from "./mockData";
+import { DependentPost, Interaction, MainPost, User } from "./types";
 import dayjs from "dayjs";
 import realPoolClient from "../poolClient";
 

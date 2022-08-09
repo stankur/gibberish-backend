@@ -7,4 +7,33 @@ interface AcceptableQuery {
 	end_time?: string;
 }
 
-export { AcceptableQuery };
+type User = {
+	username: string;
+	password: string;
+	bio?: string;
+	instagram?: string;
+};
+
+type MainPost = {
+	content: string;
+	user: User;
+	game: "Why/Because" | "Quote/Person" | "Who/Description";
+	date_posted?: string;
+};
+
+type DependentPost = {
+	content: string;
+	user: User;
+	game: "Why/Because" | "Quote/Person" | "Who/Description";
+	ownerPost: MainPost;
+	date_posted?: string;
+};
+
+
+type Interaction = {
+	user: User;
+	post: DependentPost | MainPost;
+	type: "upvote" | "downvote";
+};
+
+export { AcceptableQuery, User, MainPost, DependentPost, Interaction };

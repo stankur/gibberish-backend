@@ -9,14 +9,10 @@ import testHelper from "../../testHelper";
 
 import dayjs from "dayjs";
 
-import mockData, {
-	User,
-	DependentPost,
-	MainPost,
-	Interaction,
-} from "../../mockData";
+import mockData from "../../mockData";
+import { User, DependentPost, MainPost, Interaction } from "../../types";
 
-import { getPointsOfPost } from "../postController";
+import { getPointsOfPost,getMainPosts } from "../postController";
 
 describe("sample test", () => {
 	const pool = new Pool({
@@ -76,11 +72,91 @@ describe("sample test", () => {
 		mockData.interaction002 as Interaction,
 		mockData.interaction003 as Interaction,
 		mockData.interaction004 as Interaction,
+
+		mockData.interaction010 as Interaction,
+		mockData.interaction011 as Interaction,
+		mockData.interaction012 as Interaction,
+		mockData.interaction013 as Interaction,
+
+		mockData.interaction020 as Interaction,
+		mockData.interaction021 as Interaction,
+		mockData.interaction022 as Interaction,
+		mockData.interaction023 as Interaction,
+
+		mockData.interaction10 as Interaction,
+		mockData.interaction11 as Interaction,
+		mockData.interaction12 as Interaction,
+		mockData.interaction13 as Interaction,
+		mockData.interaction14 as Interaction,
+
+		mockData.interaction100 as Interaction,
+
+		mockData.interaction110 as Interaction,
+		mockData.interaction111 as Interaction,
+
+		mockData.interaction120 as Interaction,
+		mockData.interaction121 as Interaction,
+		mockData.interaction122 as Interaction,
+
+		mockData.interaction130 as Interaction,
+
+		mockData.interaction140 as Interaction,
+		mockData.interaction141 as Interaction,
+		mockData.interaction142 as Interaction,
+
+		mockData.interaction20 as Interaction,
+		mockData.interaction21 as Interaction,
+		mockData.interaction22 as Interaction,
+		mockData.interaction23 as Interaction,
+		mockData.interaction24 as Interaction,
+
+		mockData.interaction200 as Interaction,
+		mockData.interaction201 as Interaction,
+		mockData.interaction202 as Interaction,
+		mockData.interaction203 as Interaction,
+		mockData.interaction204 as Interaction,
+
+		mockData.interaction210 as Interaction,
+		mockData.interaction211 as Interaction,
+		mockData.interaction212 as Interaction,
+		mockData.interaction213 as Interaction,
+		mockData.interaction214 as Interaction,
+
+		mockData.interaction220 as Interaction,
+		mockData.interaction221 as Interaction,
+		mockData.interaction222 as Interaction,
+		mockData.interaction223 as Interaction,
+		mockData.interaction224 as Interaction,
+
+		mockData.interaction30 as Interaction,
+		mockData.interaction31 as Interaction,
+
+		mockData.interaction300 as Interaction,
+		mockData.interaction301 as Interaction,
+		mockData.interaction302 as Interaction,
+		mockData.interaction303 as Interaction,
+		mockData.interaction304 as Interaction,
+
+		mockData.interaction310 as Interaction,
+		mockData.interaction311 as Interaction,
+		mockData.interaction312 as Interaction,
+		mockData.interaction313 as Interaction,
+		mockData.interaction314 as Interaction,
+
+		mockData.interaction320 as Interaction,
+		mockData.interaction321 as Interaction,
+		mockData.interaction322 as Interaction,
+		mockData.interaction323 as Interaction,
+
+		mockData.interaction330 as Interaction,
+		mockData.interaction331 as Interaction,
+		mockData.interaction332 as Interaction,
 	];
 
 	const app: Express = express();
 	app.use(express.json());
-	app.get("/test", getPointsOfPost);
+	app.get("/points", getPointsOfPost);
+	app.get("/main", getMainPosts);
 
 	beforeEach("create temporary tables", async function () {
 		await poolClient.query(
@@ -106,12 +182,18 @@ describe("sample test", () => {
 	});
 
 	afterEach("Drop temporary tables", async function () {
-		await poolClient.query("DROP TABLE IF EXISTS pg_temp.users");
+		await poolClient.query(`
+        DROP TABLE IF EXISTS pg_temp.users;
+
+        DROP TABLE IF EXISTS pg_temp.posts;
+
+        DROP TABLE IF EXISTS pg_temp.interactions;
+        `);
 	});
 
 	it("test if could get all posts points correctly", (done) => {
 		request(app)
-			.get("/test")
+			.get("/points")
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.end((err, response) => {
@@ -120,10 +202,29 @@ describe("sample test", () => {
 				}
 
 				console.log(
-					"this must be the json guy: " +
+					"this must be all posts points: " +
 						JSON.stringify(response.text)
 				);
 				return done();
 			});
+	});
+
+	it("could get all main posts with their total replies", (done) => {
+		request(app)
+			.get("/main")
+			.expect("Content-Type", /json/)
+			.expect(200)
+			.end((err, response) => {
+				if (err) {
+					return done(err);
+				}
+
+				console.log(
+					"this must be all main posts replies: " +
+						JSON.stringify(response.text)
+				);
+				return done();
+
+            });
 	});
 });
