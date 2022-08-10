@@ -1,4 +1,4 @@
-import express, { Express } from "express";
+import express, { Express, response } from "express";
 
 import Pool from "pg-pool";
 import poolClient from "../../../poolClient";
@@ -12,7 +12,9 @@ import dayjs from "dayjs";
 import mockData from "../../mockData";
 import { User, DependentPost, MainPost, Interaction } from "../../types";
 
-import { getPointsOfPost,getMainPosts } from "../postController";
+import {
+    getMainPostsInfo
+} from "../postController";
 
 describe("sample test", () => {
 	const pool = new Pool({
@@ -155,8 +157,7 @@ describe("sample test", () => {
 
 	const app: Express = express();
 	app.use(express.json());
-	app.get("/points", getPointsOfPost);
-	app.get("/main", getMainPosts);
+	app.get("/main-info", getMainPostsInfo);
 
 	beforeEach("create temporary tables", async function () {
 		await poolClient.query(
@@ -184,43 +185,34 @@ describe("sample test", () => {
 	afterEach("Drop temporary tables", async function () {
 		await poolClient.query(`
         DROP TABLE IF EXISTS pg_temp.users;
-
         DROP TABLE IF EXISTS pg_temp.posts;
-
         DROP TABLE IF EXISTS pg_temp.interactions;
+
+        DROP TABLE IF EXISTS pg_temp.post_upvotes;
+        DROP TABLE IF EXISTS pg_temp.post_downvotes;
+        DROP TABLE IF EXISTS pg_temp.post_partial_points;
+        DROP TABLE IF EXISTS pg_temp.post_points;
+        DROP TABLE IF EXISTS pg_temp.post_total_replies;
+        DROP TABLE IF EXISTS pg_temp.main_posts;
+        DROP TABLE IF EXISTS pg_temp.ranked_replies;
+        DROP TABLE IF EXISTS pg_temp.limited_ranked_replies;
+        DROP TABLE IF EXISTS pg_temp.base_main_posts_info;
+        DROP TABLE IF EXISTS pg_temp.main_posts_numbered_replies;
         `);
 	});
 
-	it("test if could get all posts points correctly", (done) => {
+	it("could get main posts info", (done) => {
 		request(app)
-			.get("/points")
+			.get("/main-info")
 			.expect("Content-Type", /json/)
 			.expect(200)
 			.end((err, response) => {
-				if (err) {
-					return done(err);
-				}
+                if (err) {
+                    return done(err);
+                }
 
 				console.log(
-					"this must be all posts points: " +
-						JSON.stringify(response.text)
-				);
-				return done();
-			});
-	});
-
-	it("could get all main posts with their total replies", (done) => {
-		request(app)
-			.get("/main")
-			.expect("Content-Type", /json/)
-			.expect(200)
-			.end((err, response) => {
-				if (err) {
-					return done(err);
-				}
-
-				console.log(
-					"this must be all main posts replies: " +
+					"this must be main posts info : " +
 						JSON.stringify(response.text)
 				);
 				return done();
